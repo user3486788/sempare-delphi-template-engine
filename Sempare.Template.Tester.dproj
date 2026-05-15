@@ -45,7 +45,7 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
-        <DCC_UnitSearchPath>thirdparty\DUnitX\Source;$(DUnitX);src;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>thirdparty\DUnitX\Source;$(DUnitX);src;demo\SempareTemplatePlayground;demo\DwsBridgeAdvanced;$(PROJECTDIR)..\DWScript\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <SanitizedProjectName>Sempare_Template_Tester</SanitizedProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
@@ -92,6 +92,15 @@
         <DCCReference Include="tests\Sempare.Template.TestStackFrame.pas"/>
         <DCCReference Include="tests\Sempare.Template.TestLexer.pas"/>
         <DCCReference Include="tests\Sempare.Template.TestFunctions.pas"/>
+        <DCCReference Include="tests\Sempare.Template.TestDwsProviderCache.pas"/>
+        <DCCReference Include="tests\Sempare.Template.TestDwsMarshalling.pas"/>
+        <DCCReference Include="tests\Sempare.Template.TestDwsFunctions.pas"/>
+        <DCCReference Include="tests\Sempare.Template.TestDwsIntegration.pas"/>
+        <DCCReference Include="tests\Sempare.Template.TestDwsProvidersAdvanced.pas"/>
+        <DCCReference Include="tests\Sempare.Template.TestDwsHostServices.pas"/>
+        <DCCReference Include="tests\Sempare.Template.TestDwsAdvancedHelpers.pas"/>
+        <DCCReference Include="tests\Sempare.Template.TestDwsChinookDemo.pas"/>
+        <DCCReference Include="tests\Sempare.Template.TestDemoTemplates.pas"/>
         <DCCReference Include="tests\Sempare.Template.TestVirtualMethods.pas"/>
         <DCCReference Include="tests\Sempare.Template.TestMap.pas"/>
         <DCCReference Include="tests\Sempare.Template.TestSupport.pas"/>

@@ -1,3 +1,5 @@
+[← Template Registry](template-registry.md) · [Back to README](../README.md) · [Testing →](testing.md)
+
 # ![](../images/sempare-logo-45px.png) Sempare Template Engine
 
 Copyright (c) 2019-2024 [Sempare Limited](http://www.sempare.ltd)
@@ -121,6 +123,11 @@ The Template context object is a container for configuration used when parsing o
 	
 	ctx.Options := ctx.Options + [eoEmbedException];
 	ctx.DebugErrorFormat := '%s';
+
+    ctx.OnChange := procedure(const ATemplateName: string; const ATemplate: ITemplate)
+    begin
+      // ATemplate is nil when a template is removed from the context
+    end;
 	
 ```
 
@@ -134,4 +141,10 @@ The output of the Template parser is an object implementing the ITemplate interf
     var tpl := Template.Parse(ctx, 'this is a template'); 
     writeln(Template.Eval(ctx, tpl));
 ```
+
+## See Also
+
+- [Template Registry](template-registry.md) - loading and refreshing template assets.
+- [Testing](testing.md) - DUnitX runner and demo verification commands.
+- [Getting Started](getting-started.md) - bootstrap and first-run workflow.
 

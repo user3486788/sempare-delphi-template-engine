@@ -1,0 +1,4 @@
+function Render(data : JSONVariant) : String;
+begin
+  Result := data.html;
+end;

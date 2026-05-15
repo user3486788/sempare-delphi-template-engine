@@ -1,0 +1,23 @@
+uses SakilaDb;
+
+function Main(data : JSONVariant) : String;
+var
+  storeInfo : JSONVariant;
+begin
+  storeInfo := JSON.Parse(QueryJson(
+    'select s.store_id, ci.city, co.country, count(distinct c.customer_id) as customer_count, ' +
+    'printf(''%.2f'', sum(p.amount)) as revenue_text ' +
+    'from store s ' +
+    'join address a on a.address_id = s.address_id ' +
+    'join city ci on ci.city_id = a.city_id ' +
+    'join country co on co.country_id = ci.country_id ' +
+    'left join customer c on c.store_id = s.store_id ' +
+    'left join payment p on p.customer_id = c.customer_id ' +
+    'group by s.store_id ' +
+    'order by sum(p.amount) desc, s.store_id ' +
+    'limit 1'
+  ))[0];
+  Result := 'Store #' + String(storeInfo.store_id) + ' in ' + String(storeInfo.city) + ', ' +
+    String(storeInfo.country) + ' leads with ' + String(storeInfo.customer_count) +
+    ' customers and ' + String(storeInfo.revenue_text) + ' revenue.';
+end;

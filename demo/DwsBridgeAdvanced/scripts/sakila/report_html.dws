@@ -1,0 +1,229 @@
+uses PosterCache, SempareHost, SakilaDb;
+
+function RenderActors(rows : JSONVariant) : String;
+var
+  i : Integer;
+begin
+  Result := '';
+  for i := 0 to rows.Length - 1 do
+    Result := Result + '<li><strong>' + String(rows[i].full_name) + '</strong><span>' + String(rows[i].film_count) + ' films</span></li>';
+end;
+
+function RenderCategories(rows : JSONVariant) : String;
+var
+  i : Integer;
+begin
+  Result := '';
+  for i := 0 to rows.Length - 1 do
+    Result := Result + '<li><strong>' + String(rows[i].name) + '</strong><span>' + String(rows[i].film_count) + ' films</span></li>';
+end;
+
+function RenderCustomers(rows : JSONVariant) : String;
+var
+  i : Integer;
+begin
+  Result := '';
+  for i := 0 to rows.Length - 1 do
+    Result := Result + '<tr><td>' + String(rows[i].full_name) + '</td><td>' + String(rows[i].city) + '</td><td>' +
+      String(rows[i].country) + '</td><td>' + String(rows[i].revenue_text) + '</td></tr>';
+end;
+
+function RenderStores(rows : JSONVariant) : String;
+var
+  i : Integer;
+begin
+  Result := '';
+  for i := 0 to rows.Length - 1 do
+    Result := Result + '<tr><td>Store #' + String(rows[i].store_id) + '</td><td>' + String(rows[i].manager_name) + '</td><td>' +
+      String(rows[i].city) + ', ' + String(rows[i].country) + '</td><td>' + String(rows[i].customer_count) + '</td><td>' +
+      String(rows[i].revenue_text) + '</td></tr>';
+end;
+
+function RenderFilmCards(rows : JSONVariant) : String;
+var
+  i : Integer;
+  posterKey : String;
+  posterPath : String;
+begin
+  Result := '';
+  for i := 0 to rows.Length - 1 do begin
+    posterKey := String(rows[i].film_id) + '-' + Slug(String(rows[i].title));
+    posterPath := EnsureCachedPoster(
+      'sakila',
+      posterKey,
+      PosterUrl(String(rows[i].title), String(rows[i].category_name)),
+      String(rows[i].title),
+      String(rows[i].category_name)
+    );
+
+    Result := Result +
+      '<article class="film-card">' +
+      '<img src="' + posterPath + '" alt="' + String(rows[i].title) + ' poster" />' +
+      '<div class="film-copy">' +
+      '<p class="eyebrow">' + String(rows[i].category_name) + '</p>' +
+      '<h3>' + String(rows[i].title) + '</h3>' +
+      '<p class="description">' + String(rows[i].description_text) + '</p>' +
+      '<dl class="film-meta">' +
+      '<div><dt>Release</dt><dd>' + String(rows[i].release_year) + '</dd></div>' +
+      '<div><dt>Rating</dt><dd>' + String(rows[i].rating) + '</dd></div>' +
+      '<div><dt>Length</dt><dd>' + String(rows[i].length) + ' min</dd></div>' +
+      '<div><dt>Rentals</dt><dd>' + String(rows[i].rental_count) + '</dd></div>' +
+      '<div><dt>Rental rate</dt><dd>' + String(rows[i].rental_rate_text) + '</dd></div>' +
+      '<div><dt>Replacement</dt><dd>' + String(rows[i].replacement_cost_text) + '</dd></div>' +
+      '<div><dt>Rental days</dt><dd>' + String(rows[i].rental_duration) + '</dd></div>' +
+      '</dl>' +
+      '<p class="cast"><strong>Cast:</strong> ' + String(rows[i].actor_names) + '</p>' +
+      '</div></article>';
+  end;
+end;
+
+function Render(data : JSONVariant) : String;
+var
+  totals : JSONVariant;
+  topActor : JSONVariant;
+  featuredFilm : JSONVariant;
+  topCustomer : JSONVariant;
+  topActors : JSONVariant;
+  topCategories : JSONVariant;
+  topCustomers : JSONVariant;
+  storeRevenue : JSONVariant;
+  bannerHtml : String;
+  customerBadge : String;
+begin
+  totals := JSON.Parse(QueryJson(
+    'select (select count(*) from actor) as actor_count, ' +
+    '(select count(*) from film) as film_count, ' +
+    '(select count(*) from customer) as customer_count, ' +
+    '(select count(*) from rental) as rental_count, ' +
+    '(select count(*) from payment) as payment_count'
+  ))[0];
+
+  topActor := JSON.Parse(QueryJson(
+    'select a.first_name || '' '' || a.last_name as full_name, count(*) as film_count ' +
+    'from actor a join film_actor fa on fa.actor_id = a.actor_id ' +
+    'group by a.actor_id order by film_count desc, full_name limit 1'
+  ))[0];
+
+  featuredFilm := JSON.Parse(QueryJson(
+    'select f.title, f.rating, count(*) as rental_count ' +
+    'from rental r join inventory i on i.inventory_id = r.inventory_id ' +
+    'join film f on f.film_id = i.film_id ' +
+    'group by f.film_id order by rental_count desc, f.title limit 1'
+  ))[0];
+
+  topCustomer := JSON.Parse(QueryJson(
+    'select c.first_name || '' '' || c.last_name as full_name, ci.city, co.country, ' +
+    'printf(''%.2f'', sum(p.amount)) as revenue_text ' +
+    'from customer c ' +
+    'join address a on a.address_id = c.address_id ' +
+    'join city ci on ci.city_id = a.city_id ' +
+    'join country co on co.country_id = ci.country_id ' +
+    'join payment p on p.customer_id = c.customer_id ' +
+    'group by c.customer_id order by sum(p.amount) desc, full_name limit 1'
+  ))[0];
+
+  topActors := JSON.Parse(QueryJson(
+    'select a.first_name || '' '' || a.last_name as full_name, count(*) as film_count ' +
+    'from actor a join film_actor fa on fa.actor_id = a.actor_id ' +
+    'group by a.actor_id order by film_count desc, full_name limit 5'
+  ));
+
+  topCategories := JSON.Parse(QueryJson(
+    'select c.name, count(*) as film_count ' +
+    'from category c join film_category fc on fc.category_id = c.category_id ' +
+    'group by c.category_id order by film_count desc, c.name limit 5'
+  ));
+
+  topCustomers := JSON.Parse(QueryJson(
+    'select c.first_name || '' '' || c.last_name as full_name, ci.city, co.country, ' +
+    'printf(''%.2f'', sum(p.amount)) as revenue_text ' +
+    'from customer c ' +
+    'join address a on a.address_id = c.address_id ' +
+    'join city ci on ci.city_id = a.city_id ' +
+    'join country co on co.country_id = ci.country_id ' +
+    'join payment p on p.customer_id = c.customer_id ' +
+    'group by c.customer_id order by sum(p.amount) desc, full_name limit 5'
+  ));
+
+  storeRevenue := JSON.Parse(QueryJson(
+    'select s.store_id, st.first_name || '' '' || st.last_name as manager_name, ci.city, co.country, ' +
+    'count(distinct c.customer_id) as customer_count, printf(''%.2f'', sum(p.amount)) as revenue_text ' +
+    'from store s ' +
+    'join staff st on st.staff_id = s.manager_staff_id ' +
+    'join address a on a.address_id = s.address_id ' +
+    'join city ci on ci.city_id = a.city_id ' +
+    'join country co on co.country_id = ci.country_id ' +
+    'left join customer c on c.store_id = s.store_id ' +
+    'left join payment p on p.customer_id = c.customer_id ' +
+    'group by s.store_id order by sum(p.amount) desc, s.store_id'
+  ));
+
+  bannerHtml := '<div class="hero-banner">[Sakila Database HTML Report] totals: ' + String(totals.film_count) +
+    ' films, ' + String(totals.actor_count) + ' actors, ' + String(totals.customer_count) + ' customers</div>';
+  customerBadge := '<div class="customer-badge"><strong>' + String(topCustomer.full_name) + '</strong> from ' +
+    String(topCustomer.city) + ', ' + String(topCustomer.country) + ' spent ' + String(topCustomer.revenue_text) + '</div>';
+
+  Result :=
+    '<!doctype html>' +
+    '<html lang="en"><head><meta charset="utf-8"><title>' + String(GetVar('reportTitle')) + '</title>' +
+    '<style>' +
+    'body{margin:0;background:#f3efe7;color:#1d1a16;font:16px/1.5 Segoe UI,Arial,sans-serif;}' +
+    '.page{max-width:1240px;margin:0 auto;padding:32px 24px 48px;}' +
+    '.hero{background:linear-gradient(135deg,#f8d17b,#e89550);padding:28px;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,.14);}' +
+    '.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:12px;opacity:.75;}' +
+    'h1,h2,h3{font-family:Georgia,Times New Roman,serif;margin:0 0 12px;}' +
+    '.hero-copy{max-width:780px;font-size:18px;}' +
+    '.hero-banner{margin-top:14px;padding:12px 16px;background:#fff4d6;border-radius:14px;font-weight:600;}' +
+    '.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin:24px 0;}' +
+    '.stat,.panel{background:#fff;border-radius:20px;padding:18px;box-shadow:0 12px 30px rgba(0,0,0,.08);}' +
+    '.stat strong{display:block;font-size:28px;}' +
+    '.grid{display:grid;grid-template-columns:1.3fr .7fr;gap:18px;align-items:start;}' +
+    '.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:18px;}' +
+    '.customer-badge{padding:14px 16px;background:#fff4d6;border-radius:14px;font-weight:600;}' +
+    '.film-blurb{padding:14px 16px;background:#1d1a16;color:#fff;border-radius:14px;}' +
+    '.rank{list-style:none;padding:0;margin:0;}' +
+    '.rank li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #ece6db;}' +
+    'table{width:100%;border-collapse:collapse;}' +
+    'th,td{text-align:left;padding:10px;border-bottom:1px solid #ece6db;}' +
+    '.film-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-top:18px;}' +
+    '.film-card{background:#fff;border-radius:22px;box-shadow:0 12px 30px rgba(0,0,0,.08);overflow:hidden;display:flex;flex-direction:column;}' +
+    '.film-card img{display:block;width:100%;aspect-ratio:2/3;object-fit:cover;background:#e5e7eb;}' +
+    '.film-copy{padding:16px 18px;display:flex;flex-direction:column;gap:12px;}' +
+    '.film-copy h3{margin:0;}' +
+    '.description{margin:0;color:#3f372f;}' +
+    '.film-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;margin:0;}' +
+    '.film-meta div{background:#f8f4ec;border-radius:12px;padding:10px 12px;}' +
+    '.film-meta dt{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#7b6f63;}' +
+    '.film-meta dd{margin:4px 0 0;font-weight:600;}' +
+    '.cast{margin:0;color:#574d44;}' +
+    '.footer{margin-top:20px;color:#5f564d;font-size:14px;}' +
+    '@media (max-width:900px){.stats,.cards,.grid{grid-template-columns:1fr;}.film-meta{grid-template-columns:1fr;}}' +
+    '</style></head><body><div class="page">' +
+    '<section class="hero"><p class="eyebrow">Generated from ' + String(GetVar('databaseName')) + '</p>' +
+    '<h1>' + String(GetVar('reportTitle')) + '</h1>' +
+    '<p class="hero-copy">Sakila showcase driven by DWScript. The report queries the database live through the demo-local SakilaDb unit and renders a single-page gallery of film cards with cached poster artwork.</p>' +
+    bannerHtml + '</section>' +
+    '<section class="stats">' +
+    '<div class="stat"><span>Actors</span><strong>' + String(totals.actor_count) + '</strong></div>' +
+    '<div class="stat"><span>Films</span><strong>' + String(totals.film_count) + '</strong></div>' +
+    '<div class="stat"><span>Customers</span><strong>' + String(totals.customer_count) + '</strong></div>' +
+    '<div class="stat"><span>Rentals</span><strong>' + String(totals.rental_count) + '</strong></div>' +
+    '<div class="stat"><span>Payments</span><strong>' + String(totals.payment_count) + '</strong></div>' +
+    '</section>' +
+    '<section class="cards">' +
+    '<div class="panel"><h2>Top Actor</h2><p><strong>' + String(topActor.full_name) + '</strong> appears in ' + String(topActor.film_count) + ' films.</p></div>' +
+    '<div class="panel"><h2>Top Customer</h2>' + customerBadge + '</div>' +
+    '<div class="panel"><h2>Featured Film</h2><div class="film-blurb"><h3>' + String(featuredFilm.title) + '</h3><p>Rating: ' + String(featuredFilm.rating) + '</p><p>Rentals: ' + String(featuredFilm.rental_count) + '</p></div></div>' +
+    '</section>' +
+    '<section class="grid" style="margin-top:18px;">' +
+    '<div class="panel"><h2>Top Actors</h2><ul class="rank">' + RenderActors(topActors) + '</ul></div>' +
+    '<div class="panel"><h2>Top Categories</h2><ul class="rank">' + RenderCategories(topCategories) + '</ul></div>' +
+    '</section>' +
+    '<section class="grid" style="margin-top:18px;">' +
+    '<div class="panel"><h2>Top Customers</h2><table><thead><tr><th>Customer</th><th>City</th><th>Country</th><th>Revenue</th></tr></thead><tbody>' + RenderCustomers(topCustomers) + '</tbody></table></div>' +
+    '<div class="panel"><h2>Store Revenue</h2><table><thead><tr><th>Store</th><th>Manager</th><th>Location</th><th>Customers</th><th>Revenue</th></tr></thead><tbody>' + RenderStores(storeRevenue) + '</tbody></table></div>' +
+    '</section>' +
+    '<section class="panel" style="margin-top:18px;"><h2>Film Cards</h2><p>Generated one report page with ' + String(data.filmPageCountText) + ' film cards sourced from sakila.db. Posters are cached on demand in output/poster-cache/sakila.</p><div class="film-grid">' + RenderFilmCards(data.filmPages) + '</div></section>' +
+    '<p class="footer"><strong>Diagnostics</strong>: ' + String(data.diagnosticsSummary) + '<br><strong>Bridge showcase</strong>: ' + String(data.scenarioCountText) + ' scenarios<br><strong>Final stage</strong>: ' + String(GetVar('reportStage')) + '<br><strong>Generated at</strong>: ' + String(GetVar('generatedAt')) + '</p>' +
+    '</div></body></html>';
+end;

@@ -1,0 +1,441 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sakila Database HTML Report</title>
+<style>
+:root {
+  --bg: #f3efe7;
+  --panel: #fffaf3;
+  --ink: #1d1a16;
+  --muted: #5f564d;
+  --line: #e5d6c5;
+  --accent: #c96f2d;
+  --shadow: rgba(0, 0, 0, 0.08);
+}
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #fff8ef 0%, var(--bg) 58%, #eadcc9 100%);
+  color: var(--ink);
+  font: 16px/1.5 "Segoe UI", Arial, sans-serif;
+}
+.page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+.hero,
+.panel,
+.film-card {
+  background: rgba(255, 250, 243, 0.94);
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 48px var(--shadow);
+}
+.hero,
+.panel {
+  border-radius: 24px;
+}
+.hero {
+  padding: 28px 30px;
+}
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.hero h1,
+.panel h2,
+.film-copy h3 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: 42px;
+  line-height: 1.05;
+}
+.hero-copy {
+  margin: 0;
+  max-width: 800px;
+  font-size: 18px;
+  color: var(--muted);
+}
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+.hero-meta span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-size: 13px;
+}
+.panel {
+  margin-top: 22px;
+  padding: 22px 24px;
+}
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 26px;
+}
+.panel p {
+  margin: 0;
+  color: var(--muted);
+}
+.film-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+.film-card {
+  overflow: hidden;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+}
+.film-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: #e9dfd4;
+}
+.film-copy {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.film-copy h3 {
+  margin: 0;
+  font-size: 24px;
+}
+.description {
+  margin: 0;
+  color: #453c33;
+}
+.film-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+  margin: 0;
+}
+.film-meta div {
+  border-radius: 12px;
+  background: #f8f4ec;
+  padding: 10px 12px;
+}
+.film-meta dt {
+  margin: 0;
+  font-size: 12px;
+  color: #7b6f63;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.film-meta dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+.cast {
+  margin: 0;
+  color: #574d44;
+}
+.footer {
+  margin-top: 22px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #1f2933;
+  color: #f8fafc;
+}
+.footer strong {
+  color: #f4c987;
+}
+@media (max-width: 720px) {
+  .page {
+    padding: 22px 16px 40px;
+  }
+  .hero h1 {
+    font-size: 32px;
+  }
+  .film-meta {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <section class="hero">
+    <p class="eyebrow">Generated From sakila.db</p>
+    <h1>Sakila Database HTML Report</h1>
+    <p class="hero-copy">This Sakila report stays on a single HTML page and renders film cards from data loaded through DWScript scripts. Each card is sourced from <b>sakila.db</b> and includes poster artwork cached on demand.</p>
+    <div class="hero-meta">
+      <span>Film cards 12</span>
+      <span>Bridge showcase 10 scenarios</span>
+      <span>Stage published</span>
+      <span>Generated 2026-03-25 23:19:58</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Film Cards</h2>
+    <p>Each card below is populated from `sakila.db` through `film_catalog.dws`. The report remains one page while still showing rich per-film metadata.</p>
+    <div class="film-grid">
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/103-bucket-brotherhood.svg" alt="BUCKET BROTHERHOOD poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Travel</p>
+          <h3>BUCKET BROTHERHOOD</h3>
+          <p class="description">A Amazing Display of a Girl And a Womanizer who must Succumb a Lumberjack in A Baloon Factory</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>PG</dd></div>
+            <div><dt>Length</dt><dd>133 min</dd></div>
+            <div><dt>Rentals</dt><dd>34</dd></div>
+            <div><dt>Rental Rate</dt><dd>4.99</dd></div>
+            <div><dt>Replacement</dt><dd>27.99</dd></div>
+            <div><dt>Rental Days</dt><dd>7</dd></div>
+            <div><dt>Category</dt><dd>Travel</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> RIP CRAWFORD, TIM HACKMAN, GARY PHOENIX, CHARLIZE DENCH, KIRSTEN AKROYD, BURT TEMPLE</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/738-rocketeer-mother.svg" alt="ROCKETEER MOTHER poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Foreign</p>
+          <h3>ROCKETEER MOTHER</h3>
+          <p class="description">A Awe-Inspiring Character Study of a Robot And a Sumo Wrestler who must Discover a Womanizer in A Shark Tank</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>PG-13</dd></div>
+            <div><dt>Length</dt><dd>178 min</dd></div>
+            <div><dt>Rentals</dt><dd>33</dd></div>
+            <div><dt>Rental Rate</dt><dd>0.99</dd></div>
+            <div><dt>Replacement</dt><dd>27.99</dd></div>
+            <div><dt>Rental Days</dt><dd>3</dd></div>
+            <div><dt>Category</dt><dd>Foreign</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> JUDY DEAN, TOM MIRANDA, CHRIS BRIDGES, RENEE TRACY, WARREN JACKMAN, MERYL ALLEN, JAYNE SILVERSTONE</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/331-forward-temple.svg" alt="FORWARD TEMPLE poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Games</p>
+          <h3>FORWARD TEMPLE</h3>
+          <p class="description">A Astounding Display of a Forensic Psychologist And a Mad Scientist who must Challenge a Girl in New Orleans</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>NC-17</dd></div>
+            <div><dt>Length</dt><dd>90 min</dd></div>
+            <div><dt>Rentals</dt><dd>32</dd></div>
+            <div><dt>Rental Rate</dt><dd>2.99</dd></div>
+            <div><dt>Replacement</dt><dd>25.99</dd></div>
+            <div><dt>Rental Days</dt><dd>6</dd></div>
+            <div><dt>Category</dt><dd>Games</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> RIP WINSLET, SEAN WILLIAMS, GREG CHAPLIN</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/382-grit-clockwork.svg" alt="GRIT CLOCKWORK poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Games</p>
+          <h3>GRIT CLOCKWORK</h3>
+          <p class="description">A Thoughtful Display of a Dentist And a Squirrel who must Confront a Lumberjack in A Shark Tank</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>PG</dd></div>
+            <div><dt>Length</dt><dd>137 min</dd></div>
+            <div><dt>Rentals</dt><dd>32</dd></div>
+            <div><dt>Rental Rate</dt><dd>0.99</dd></div>
+            <div><dt>Replacement</dt><dd>21.99</dd></div>
+            <div><dt>Rental Days</dt><dd>3</dd></div>
+            <div><dt>Category</dt><dd>Games</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> CAMERON ZELLWEGER, KEVIN GARLAND, GEOFFREY HESTON</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/489-juggler-hardly.svg" alt="JUGGLER HARDLY poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Animation</p>
+          <h3>JUGGLER HARDLY</h3>
+          <p class="description">A Epic Story of a Mad Cow And a Astronaut who must Challenge a Car in California</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>PG-13</dd></div>
+            <div><dt>Length</dt><dd>54 min</dd></div>
+            <div><dt>Rentals</dt><dd>32</dd></div>
+            <div><dt>Rental Rate</dt><dd>0.99</dd></div>
+            <div><dt>Replacement</dt><dd>14.99</dd></div>
+            <div><dt>Rental Days</dt><dd>4</dd></div>
+            <div><dt>Category</dt><dd>Animation</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> MILLA PECK, PENELOPE PINKETT, CAMERON ZELLWEGER, PENELOPE MONROE, SALMA NOLTE, MORGAN WILLIAMS, EWAN GOODING, MERYL GIBSON, ED GUINESS</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/730-ridgemont-submarine.svg" alt="RIDGEMONT SUBMARINE poster" />
+        <div class="film-copy">
+          <p class="eyebrow">New</p>
+          <h3>RIDGEMONT SUBMARINE</h3>
+          <p class="description">A Unbelieveable Drama of a Waitress And a Composer who must Sink a Mad Cow in Ancient Japan</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>PG-13</dd></div>
+            <div><dt>Length</dt><dd>46 min</dd></div>
+            <div><dt>Rentals</dt><dd>32</dd></div>
+            <div><dt>Rental Rate</dt><dd>0.99</dd></div>
+            <div><dt>Replacement</dt><dd>28.99</dd></div>
+            <div><dt>Rental Days</dt><dd>3</dd></div>
+            <div><dt>Category</dt><dd>New</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> JOHNNY LOLLOBRIGIDA, JULIANNE DENCH, WHOOPI HURT, MICHAEL BOLGER, JULIA FAWCETT</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/767-scalawag-duck.svg" alt="SCALAWAG DUCK poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Music</p>
+          <h3>SCALAWAG DUCK</h3>
+          <p class="description">A Fateful Reflection of a Car And a Teacher who must Confront a Waitress in A Monastery</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>NC-17</dd></div>
+            <div><dt>Length</dt><dd>183 min</dd></div>
+            <div><dt>Rentals</dt><dd>32</dd></div>
+            <div><dt>Rental Rate</dt><dd>4.99</dd></div>
+            <div><dt>Replacement</dt><dd>13.99</dd></div>
+            <div><dt>Rental Days</dt><dd>6</dd></div>
+            <div><dt>Category</dt><dd>Music</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> REESE KILMER, JUDE CRUISE, CHRISTIAN NEESON, GROUCHO SINATRA, CHRIS DEPP</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/31-apache-divine.svg" alt="APACHE DIVINE poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Family</p>
+          <h3>APACHE DIVINE</h3>
+          <p class="description">A Awe-Inspiring Reflection of a Pastry Chef And a Teacher who must Overcome a Sumo Wrestler in A U-Boat</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>NC-17</dd></div>
+            <div><dt>Length</dt><dd>92 min</dd></div>
+            <div><dt>Rentals</dt><dd>31</dd></div>
+            <div><dt>Rental Rate</dt><dd>4.99</dd></div>
+            <div><dt>Replacement</dt><dd>16.99</dd></div>
+            <div><dt>Rental Days</dt><dd>5</dd></div>
+            <div><dt>Category</dt><dd>Family</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> NICK WAHLBERG, CUBA OLIVIER, ANNE CRONYN, HENRY BERRY</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/369-goodfellas-salute.svg" alt="GOODFELLAS SALUTE poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Sci-Fi</p>
+          <h3>GOODFELLAS SALUTE</h3>
+          <p class="description">A Unbelieveable Tale of a Dog And a Explorer who must Sink a Mad Cow in A Baloon Factory</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>PG</dd></div>
+            <div><dt>Length</dt><dd>56 min</dd></div>
+            <div><dt>Rentals</dt><dd>31</dd></div>
+            <div><dt>Rental Rate</dt><dd>4.99</dd></div>
+            <div><dt>Replacement</dt><dd>22.99</dd></div>
+            <div><dt>Rental Days</dt><dd>4</dd></div>
+            <div><dt>Category</dt><dd>Sci-Fi</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> NICK WAHLBERG, JOHNNY LOLLOBRIGIDA, ELVIS MARX, BEN WILLIS, GINA DEGENERES, SUSAN DAVIS, FRANCES TOMEI, REESE WEST</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/418-hobbit-alien.svg" alt="HOBBIT ALIEN poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Drama</p>
+          <h3>HOBBIT ALIEN</h3>
+          <p class="description">A Emotional Drama of a Husband And a Girl who must Outgun a Composer in The First Manned Space Station</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>PG-13</dd></div>
+            <div><dt>Length</dt><dd>157 min</dd></div>
+            <div><dt>Rentals</dt><dd>31</dd></div>
+            <div><dt>Rental Rate</dt><dd>0.99</dd></div>
+            <div><dt>Replacement</dt><dd>27.99</dd></div>
+            <div><dt>Rental Days</dt><dd>5</dd></div>
+            <div><dt>Category</dt><dd>Drama</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> VIVIEN BERGEN, ELVIS MARX, DUSTIN TAUTOU, WALTER TORN, WARREN JACKMAN, DARYL CRAWFORD, LAURA BRODY, REESE WEST</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/621-network-peak.svg" alt="NETWORK PEAK poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Family</p>
+          <h3>NETWORK PEAK</h3>
+          <p class="description">A Unbelieveable Reflection of a Butler And a Boat who must Outgun a Mad Scientist in California</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>PG-13</dd></div>
+            <div><dt>Length</dt><dd>75 min</dd></div>
+            <div><dt>Rentals</dt><dd>31</dd></div>
+            <div><dt>Rental Rate</dt><dd>2.99</dd></div>
+            <div><dt>Replacement</dt><dd>23.99</dd></div>
+            <div><dt>Rental Days</dt><dd>5</dd></div>
+            <div><dt>Category</dt><dd>Family</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> KIRK JOVOVICH, NATALIE HOPKINS, ELLEN PRESLEY</p>
+        </div>
+      </article>
+      
+      <article class="film-card">
+        <img src="poster-cache/sakila/735-robbers-joon.svg" alt="ROBBERS JOON poster" />
+        <div class="film-copy">
+          <p class="eyebrow">Children</p>
+          <h3>ROBBERS JOON</h3>
+          <p class="description">A Thoughtful Story of a Mad Scientist And a Waitress who must Confront a Forensic Psychologist in Soviet Georgia</p>
+          <dl class="film-meta">
+            <div><dt>Release</dt><dd>2006</dd></div>
+            <div><dt>Rating</dt><dd>PG-13</dd></div>
+            <div><dt>Length</dt><dd>102 min</dd></div>
+            <div><dt>Rentals</dt><dd>31</dd></div>
+            <div><dt>Rental Rate</dt><dd>2.99</dd></div>
+            <div><dt>Replacement</dt><dd>26.99</dd></div>
+            <div><dt>Rental Days</dt><dd>7</dd></div>
+            <div><dt>Category</dt><dd>Children</dd></div>
+          </dl>
+          <p class="cast"><strong>Cast:</strong> MILLA PECK, ANGELA HUDSON, MATTHEW LEIGH, CUBA ALLEN, JADA RYDER</p>
+        </div>
+      </article>
+      
+    </div>
+  </section>
+
+  <footer class="footer">
+    <strong>Diagnostics</strong>: Scenarios=10, provider=file, db=sakila.db<br>
+    <strong>Generated At</strong>: 2026-03-25 23:19:58
+  </footer>
+</div>
+</body>
+</html>

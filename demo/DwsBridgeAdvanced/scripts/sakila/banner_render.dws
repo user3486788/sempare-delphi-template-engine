@@ -1,0 +1,22 @@
+uses SempareHost, SakilaDb;
+
+function Render(data : JSONVariant) : String;
+var
+  totals : JSONVariant;
+  bannerData : JSONVariant;
+begin
+  totals := JSON.Parse(QueryJson(
+    'select (select count(*) from film) as film_count, ' +
+    '(select count(*) from actor) as actor_count, ' +
+    '(select count(*) from customer) as customer_count'
+  ))[0];
+
+  bannerData := JSON.Parse('{}');
+  bannerData.message := 'totals: ' + String(totals.film_count) + ' films across ' + String(totals.actor_count) +
+    ' actors and ' + String(totals.customer_count) + ' customers';
+
+  if TemplateExists('report_banner') then
+    Result := ResolveTemplate('report_banner', bannerData)
+  else
+    Result := bannerData.message;
+end;

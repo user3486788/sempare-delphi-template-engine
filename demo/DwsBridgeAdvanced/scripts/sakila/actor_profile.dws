@@ -1,0 +1,17 @@
+uses SempareHost, SakilaDb;
+
+function Describe(data : JSONVariant) : String;
+var
+  actor : JSONVariant;
+begin
+  actor := JSON.Parse(QueryJson(
+    'select a.first_name || '' '' || a.last_name as full_name, count(*) as film_count ' +
+    'from actor a ' +
+    'join film_actor fa on fa.actor_id = a.actor_id ' +
+    'group by a.actor_id ' +
+    'order by film_count desc, full_name ' +
+    'limit 1'
+  ))[0];
+  Result := String(GetVar('currentUser')) + ' spotlighted ' + String(actor.full_name) +
+    ' with ' + String(actor.film_count) + ' films for ' + String(data.audience) + '.';
+end;

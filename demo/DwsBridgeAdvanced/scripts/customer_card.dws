@@ -1,0 +1,9 @@
+uses SempareHost;
+
+function Render(data : JSONVariant) : String;
+begin
+  if TemplateExists('customer_badge') then
+    Result := ResolveTemplate('customer_badge', data)
+  else
+    Result := String(GetVar('currentUser')) + ':missing customer badge';
+end;

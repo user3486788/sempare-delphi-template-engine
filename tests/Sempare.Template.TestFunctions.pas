@@ -60,6 +60,8 @@ type
     [Test]
     procedure TestFmt();
     [Test]
+    procedure TestFmtUsesContextDecimalSeparator();
+    [Test]
     procedure TestFmtDate();
     [Test]
     procedure TestStr();
@@ -351,6 +353,16 @@ end;
 procedure TFunctionTest.TestFmt;
 begin
   Assert.AreEqual('hello world', Template.Eval('<% fmt(''%s %s'', ''hello'', ''world'') %>'));
+end;
+
+procedure TFunctionTest.TestFmtUsesContextDecimalSeparator;
+var
+  LCtx: ITemplateContext;
+begin
+  LCtx := Template.Context();
+  LCtx.DecimalSeparator := ',';
+  LCtx.ValueSeparator := ';';
+  Assert.AreEqual('123,457', Template.Eval(LCtx, '<% fmt("%6.3f"; 123,456789) %>'));
 end;
 
 type

@@ -1,0 +1,10 @@
+uses SempareHost;
+
+function Promote(data : JSONVariant) : String;
+var
+  previous : String;
+begin
+  previous := String(GetVar('reportStage'));
+  SetVar('reportStage', data.stage);
+  Result := previous + ' to ' + String(GetVar('reportStage'));
+end;

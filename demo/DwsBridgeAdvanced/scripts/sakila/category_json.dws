@@ -1,0 +1,25 @@
+uses SakilaDb;
+
+function Build(data : JSONVariant) : String;
+var
+  categories : JSONVariant;
+begin
+  categories := JSON.Parse(QueryJson(
+    'select c.name, count(*) as film_count ' +
+    'from category c ' +
+    'join film_category fc on fc.category_id = c.category_id ' +
+    'group by c.category_id ' +
+    'order by film_count desc, c.name ' +
+    'limit 3'
+  ));
+
+  Result :=
+    '{"title":"Top Sakila categories","summary":"' +
+    String(categories[0].name) + ' (' + String(categories[0].film_count) + '), ' +
+    String(categories[1].name) + ' (' + String(categories[1].film_count) + '), ' +
+    String(categories[2].name) + ' (' + String(categories[2].film_count) + ')","items":[' +
+    '{"name":"' + String(categories[0].name) + '","total":"' + String(categories[0].film_count) + '"},' +
+    '{"name":"' + String(categories[1].name) + '","total":"' + String(categories[1].film_count) + '"},' +
+    '{"name":"' + String(categories[2].name) + '","total":"' + String(categories[2].film_count) + '"}' +
+    ']}';
+end;

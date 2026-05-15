@@ -1,0 +1,9 @@
+uses SempareHost;
+
+function Render(data : JSONVariant) : String;
+begin
+  if TemplateExists('badge') then
+    Result := ResolveTemplate('badge', data)
+  else
+    Result := String(GetVar('currentUser')) + ':' + data.name;
+end;

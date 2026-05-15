@@ -1,0 +1,15 @@
+function Main(data : JSONVariant) : String;
+var
+  workTotal : Float;
+  total : Float;
+begin
+  workTotal := data.Invoice.HoursWorked * data.Invoice.HourlyRate;
+  total := workTotal + data.Invoice.Expenses;
+  Result := '{"invoiceNo":"' + String(data.Invoice.InvoiceNo) +
+    '","client":"' + String(data.Invoice.Client) +
+    '","status":"' + String(data.Invoice.Status) +
+    '","currency":"' + String(data.Invoice.Currency) +
+    '","workTotal":"' + FloatToStr(workTotal) +
+    '","total":"' + FloatToStr(total) +
+    '"}';
+end;

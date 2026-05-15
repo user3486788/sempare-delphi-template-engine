@@ -1,3 +1,5 @@
+[← Configuration](configuration.md) · [Back to README](../README.md) · [Template Registry →](template-registry.md)
+
 # ![](../images/sempare-logo-45px.png) Sempare Template Engine
 
 Copyright (c) 2019-2024 [Sempare Limited](http://www.sempare.ltd)
@@ -72,3 +74,10 @@ The function invocation mechansim can detect ITemplateContext parameter as the f
 ``` 
 class function Fmt(const AContext: ITemplateContext; const AArgs: TArray<TValue>): string; static;
 ```
+
+## See Also
+
+- [Configuration](configuration.md) - context options and escaping rules.
+- [Template Registry](template-registry.md) - loading named template assets.
+- [DWScript Bridge](sempare-dws-bridge.md) - shipped helper functions for DWScript calls.
+

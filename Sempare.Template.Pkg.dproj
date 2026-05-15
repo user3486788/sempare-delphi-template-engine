@@ -41,7 +41,10 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
         <DCC_DcuOutput>.\$(Platform)\$(Config)</DCC_DcuOutput>
+        <DCC_DcpOutput>.\$(Platform)\$(Config)</DCC_DcpOutput>
+        <DCC_BplOutput>.\$(Platform)\$(Config)</DCC_BplOutput>
         <DCC_ExeOutput>.\$(Platform)\$(Config)</DCC_ExeOutput>
+        <DCC_HppOutput>.\$(Platform)\$(Config)</DCC_HppOutput>
         <DCC_E>false</DCC_E>
         <DCC_N>false</DCC_N>
         <DCC_S>false</DCC_S>
@@ -49,6 +52,7 @@
         <DCC_K>false</DCC_K>
         <GenDll>true</GenDll>
         <GenPackage>true</GenPackage>
+        <DCC_UnitSearchPath>$(PROJECTDIR)..\DWScript\Source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;$(DCC_Namespace)</DCC_Namespace>
         <DCC_CBuilderOutput>All</DCC_CBuilderOutput>
         <SanitizedProjectName>Sempare_Template_Pkg</SanitizedProjectName>
@@ -109,6 +113,15 @@
         <DCCReference Include="src\Sempare.Template.ResourceStrings.pas"/>
         <DCCReference Include="src\Sempare.Template.VariableExtraction.pas"/>
         <DCCReference Include="src\Sempare.Template.TemplateRegistry.pas"/>
+        <DCCReference Include="src\Sempare.Template.DWS.Types.pas"/>
+        <DCCReference Include="src\Sempare.Template.DWS.Provider.pas"/>
+        <DCCReference Include="src\Sempare.Template.DWS.Cache.pas"/>
+        <DCCReference Include="src\Sempare.Template.DWS.Marshalling.pas"/>
+        <DCCReference Include="src\Sempare.Template.DWS.Runtime.pas"/>
+        <DCCReference Include="src\Sempare.Template.DWS.HostServices.pas"/>
+        <DCCReference Include="src\Sempare.Template.DWS.Functions.pas"/>
+        <DCCReference Include="src\Sempare.Template.DWS.pas"/>
+        <DCCReference Include="src\Sempare.Template.DWS.Tooling.pas"/>
         <None Include="src\Sempare.Template.Compiler.inc"/>
         <None Include="README.md"/>
         <RcCompile Include="src\Sempare.Template.Pkg.rc">

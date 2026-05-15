@@ -1,3 +1,5 @@
+[← DWScript Bridge](sempare-dws-bridge.md) · [Back to README](../README.md) · [Custom Functions →](custom-functions.md)
+
 # ![](../images/sempare-logo-45px.png) Sempare Template Engine
 
 Copyright (c) 2019-2024 [Sempare Limited](http://www.sempare.ltd)
@@ -12,6 +14,7 @@ Copyright (c) 2019-2024 [Sempare Limited](http://www.sempare.ltd)
 - [Customise the start and end script tokens](#Customise_the_start_and_end_script_tokens)
 - [Custom Variables](#Custom_Variables)
 - [Reusing Templates](#Reusing_Templates)
+- [Template Change Notifications](#Template_Change_Notifications)
 - [Dynamic Template Resolution](#Dynamic_Template_Resolution)
 - [Embed exceptions in output](#Embed_exceptions_in_output)
 - [Options](#Options)
@@ -102,6 +105,22 @@ ctx.RegisterTemplate('header', Template.Parse('<% title %>'))
 ctx.RegisterTemplate('footer', Template.Parse('Copyright (c) <% year %> <% company %>')) 
 ```
 
+<a name="Template_Change_Notifications"><h3>Template Change Notifications</h3></a>
+
+If you maintain templates dynamically, you can subscribe to context-level template change notifications:
+
+```
+ctx.OnChange := procedure(const ATemplateName: string; const ATemplate: ITemplate)
+begin
+  if ATemplate <> nil then
+    Writeln('Template updated: ' + ATemplateName)
+  else
+    Writeln('Template removed: ' + ATemplateName);
+end;
+```
+
+`OnChange` fires when templates are added, replaced, removed, or cleared from the context. When a template is removed, `ATemplate` is `nil`.
+
 <a name="Dynamic_Template_Resolution"><h3>Dynamic Template Resolution</h3></a>
 
 Templates don't need to be located in a single template. They can also be resolved dynamically using the TemplateResolver or TemplateResolverWithContext method on the context.
@@ -162,29 +181,38 @@ The template engine allows for the following options:
 
 <a name="Decimal_Separators"><h3>Decimal Separators</h3></a>
 
-Numbers are commonly formatted using comma and decimal point. e.g. 123.45
+By default, templates use invariant separators so parsing stays consistent across machine locales:
 
-However, in some regions, such as Germany, it the coma may be preferred. e.g. 123,45
+- `DecimalSeparator` defaults to `.`
+- `ValueSeparator` defaults to `,`
 
-In order to accomodate this, the context configuration has a DecimalSeparator. These default based on locale.
+For example, the default context parses:
+```
+<% Add(1.23, 4.56) %>
+```
 
-The DecimalSeparator may be set to '.' or ','. 
+If you prefer comma decimals, you can override the decimal separator on the context:
+```
+var ctx := Template.Context;
+ctx.DecimalSeparator := ',';
+```
+
+The `DecimalSeparator` may be set to `.` or `,`.
 
 <a name="Value_Separators"><h3>Value Separators</h3></a>
 
-The ValueSeparator may be set to ',' or ';'. It must be explicity set.
+The `ValueSeparator` may be set to `,` or `;`.
 
-The motivation for the behaviour is to avoid any confusion with decimal separators.
+Changing `DecimalSeparator` does not automatically change `ValueSeparator`. If you use comma decimals in expressions that contain multiple numeric values, explicitly set `ValueSeparator := ';'` to avoid ambiguity:
 ```
-<% Add(1.23 , 4.56) %>
+var ctx := Template.Context;
+ctx.DecimalSeparator := ',';
+ctx.ValueSeparator := ';';
 ```
-When the DecimalSeparator is ',', then the ValueSeparator becomes ';' as illustrated:
+
+This allows templates such as:
 ```
-<% Add(1,23 ; 4,56) %>
-```
-However, the following does work:
-```
-<% Add(1,23 , 4,56) %>
+<% Add(1,23; 4,56) %>
 ```
 
 <a name="Custom_Whitespace"><h3>Custom Whitespace</h3></a>
@@ -207,3 +235,10 @@ var ctx := Template.Context();
 ctx.WhitespaceChar := #32;
 ctx.WhitespaceChar := #183;
 ```
+
+## See Also
+
+- [DWScript Bridge](sempare-dws-bridge.md) - helper-based integration and payload semantics.
+- [Custom Functions](custom-functions.md) - adding Delphi helpers to Sempare contexts.
+- [Components](components.md) - public API entry points and units.
+

@@ -1,0 +1,24 @@
+uses SempareHost, SakilaDb;
+
+function Render(data : JSONVariant) : String;
+var
+  customer : JSONVariant;
+begin
+  customer := JSON.Parse(QueryJson(
+    'select c.first_name || '' '' || c.last_name as full_name, ci.city, co.country, ' +
+    'printf(''%.2f'', sum(p.amount)) as revenue_text ' +
+    'from customer c ' +
+    'join address a on a.address_id = c.address_id ' +
+    'join city ci on ci.city_id = a.city_id ' +
+    'join country co on co.country_id = ci.country_id ' +
+    'join payment p on p.customer_id = c.customer_id ' +
+    'group by c.customer_id ' +
+    'order by sum(p.amount) desc, full_name ' +
+    'limit 1'
+  ))[0];
+
+  if TemplateExists('customer_badge') then
+    Result := ResolveTemplate('customer_badge', customer)
+  else
+    Result := String(customer.full_name);
+end;

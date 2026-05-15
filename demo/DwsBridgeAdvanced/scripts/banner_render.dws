@@ -1,0 +1,9 @@
+uses SempareHost;
+
+function Render(data : JSONVariant) : String;
+begin
+  if TemplateExists('report_banner') then
+    Result := ResolveTemplate('report_banner')
+  else
+    Result := 'banner missing';
+end;

@@ -16,7 +16,6 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
   DesignSize = (
     1190
     505)
-  TextHeight = 13
   object Image1: TImage
     Left = 24
     Top = 8
@@ -307,15 +306,10 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Panel1'
     TabOrder = 4
-    ExplicitWidth = 1144
-    ExplicitHeight = 267
     object Splitter1: TSplitter
       Left = 465
       Top = 1
       Height = 271
-      ExplicitLeft = 504
-      ExplicitTop = 48
-      ExplicitHeight = 100
     end
     object pcTemplate: TPageControl
       Left = 1
@@ -325,7 +319,6 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
       ActivePage = tsTemplate
       Align = alLeft
       TabOrder = 0
-      ExplicitHeight = 265
       object tsTemplate: TTabSheet
         Caption = 'Template'
         object Panel2: TPanel
@@ -337,7 +330,6 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
           BevelOuter = bvNone
           Caption = 'Panel2'
           TabOrder = 0
-          ExplicitHeight = 237
           object memoTemplate: TMemo
             Left = 0
             Top = 23
@@ -350,7 +342,6 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
             OnChange = memoTemplateChange
             OnKeyUp = memoTemplateKeyUp
             OnMouseDown = memoTemplateMouseDown
-            ExplicitHeight = 214
           end
           object Panel3: TPanel
             Left = 0
@@ -366,7 +357,7 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
               Left = 232
               Top = 4
               Width = 220
-              Height = 15
+              Height = 18
               Align = alRight
               Alignment = taRightJustify
               AutoSize = False
@@ -380,15 +371,13 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
               ParentColor = False
               ParentFont = False
               Transparent = True
-              ExplicitTop = 1
-              ExplicitHeight = 9
             end
             object lblTiming: TLabel
               AlignWithMargins = True
               Left = 4
               Top = 4
               Width = 225
-              Height = 15
+              Height = 18
               Align = alLeft
               AutoSize = False
               Caption = 'lblTiming'
@@ -402,9 +391,6 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
               ParentColor = False
               ParentFont = False
               Transparent = True
-              ExplicitLeft = 3
-              ExplicitTop = 1
-              ExplicitHeight = 21
             end
           end
         end
@@ -434,8 +420,6 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
       ActivePage = tsGithubHelp
       Align = alClient
       TabOrder = 1
-      ExplicitWidth = 675
-      ExplicitHeight = 265
       object tsOutput: TTabSheet
         Caption = 'Output'
         object memoOutput: TMemo
@@ -461,10 +445,8 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
           Height = 243
           Align = alClient
           TabOrder = 0
-          ExplicitWidth = 655
-          ExplicitHeight = 224
           ControlData = {
-            4C0000008E4500001D1900000000000000000000000000000000000000000000
+            4C0000005F2E0000BE1000000000000000000000000000000000000000000000
             000000004C000000000000000000000001000000E0D057007335CF11AE690800
             2B2E126208000000000000004C0000000114020000000000C000000000000046
             8000000000000000000000000000000000000000000000000000000000000000
@@ -483,10 +465,8 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
           Align = alClient
           TabOrder = 0
           SelectedEngine = EdgeOnly
-          ExplicitWidth = 667
-          ExplicitHeight = 237
           ControlData = {
-            4C0000008E4500001D1900000000000000000000000000000000000000000000
+            4C0000005F2E0000BE1000000000000000000000000000000000000000000000
             000000004C000000000000000000000001000000E0D057007335CF11AE690800
             2B2E126208000000000000004C0000000114020000000000C000000000000046
             8000000000000000000000000000000000000000000000000000000000000000
@@ -503,7 +483,6 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Context Options'
     TabOrder = 5
-    ExplicitWidth = 678
     object cbConvertTabsToSpaces: TCheckBox
       Left = 18
       Top = 23
@@ -718,11 +697,11 @@ object FormTemplateEnginePlayground: TFormTemplateEnginePlayground
     OnClick = butExtractVarsClick
   end
   object OpenDialog1: TOpenDialog
-    Left = 744
-    Top = 160
+    Left = 728
+    Top = 184
   end
   object SaveDialog1: TSaveDialog
-    Left = 784
-    Top = 160
+    Left = 816
+    Top = 176
   end
 end

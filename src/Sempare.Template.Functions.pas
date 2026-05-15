@@ -489,6 +489,7 @@ end;
 class function TInternalFuntions.ToJson(const AContext: ITemplateContext; const AValue: TValue): string;
 var
   LMap: TMap;
+  LFormatSettings: TFormatSettings;
 begin
   if IsStr(AValue) then
     exit(AsString(AValue, AContext));
@@ -497,7 +498,11 @@ begin
     if IsIntLike(AValue) then
       exit(IntToStr(trunc(AValue.AsExtended)))
     else
-      exit(FloatToStr(AValue.AsExtended));
+    begin
+      LFormatSettings := TFormatSettings.Create;
+      LFormatSettings.DecimalSeparator := '.';
+      exit(FloatToStr(AValue.AsExtended, LFormatSettings));
+    end;
   end;
   if IsBool(AValue) then
     exit(BoolToStr(AsBoolean(AValue), true).ToLower);
@@ -692,7 +697,7 @@ end;
 
 class function TInternalFuntions.Fmt(const AContext: ITemplateContext; const AArgs: TArray<TValue>): string;
 begin
-  exit(format(AsString(AArgs[0], AContext), ToArrayTVarRec(copy(AArgs, 1, length(AArgs) - 1))));
+  exit(Format(AsString(AArgs[0], AContext), ToArrayTVarRec(copy(AArgs, 1, length(AArgs) - 1)), AContext.FormatSettings));
 end;
 
 class function TInternalFuntions.FmtDt(const AFormat: string; const ADateTime: TDateTime): string;

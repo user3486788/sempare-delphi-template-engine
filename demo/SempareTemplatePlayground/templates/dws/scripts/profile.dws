@@ -1,0 +1,6 @@
+uses SempareHost;
+
+function Main(data : JSONVariant) : String;
+begin
+  Result := String(GetVar('currentUser')) + ':' + data.stage;
+end;

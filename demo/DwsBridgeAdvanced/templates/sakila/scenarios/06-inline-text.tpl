@@ -1,0 +1,2 @@
+Inline store coverage
+Store #1 serves <% DwsInlineText('uses SakilaDb; function Render(data : JSONVariant) : String; begin Result := ValueText(data.sql); end;', 'Render', { "sql": "select count(*) from customer where store_id = 1" }) %> customers

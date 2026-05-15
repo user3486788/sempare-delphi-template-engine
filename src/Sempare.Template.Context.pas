@@ -85,6 +85,7 @@ type
   TTemplateResolver = reference to function(const AContext: ITemplateContext; const AName: string): ITemplate;
   TTemplateResolverWithContext = reference to function(const AContext: ITemplateContext; const AName: string; const AResolveContext: TTemplateValue; out ACacheInContext: boolean): ITemplate;
   TTemplateVariableResolver = reference to function(const AContext: ITemplateContext; const AName: string; out AResult: TValue): boolean;
+  TTemplateChangeEvent = reference to procedure(const ATemplateName: string; const ATemplate: ITemplate);
 
   ITemplateEvaluationContext = interface
     ['{FCE6891F-3D39-4CC4-8ADB-024D843C7770}']
@@ -178,6 +179,9 @@ type
     function GetRttiContext: TGetRttiContext;
     procedure SetRttiContext(const AContext: TGetRttiContext);
 
+    function GetOnChange: TTemplateChangeEvent;
+    procedure SetOnChange(const AOnChange: TTemplateChangeEvent);
+
     property RttiContext: TGetRttiContext read GetRttiContext write SetRttiContext;
     property Functions: ITemplateFunctions read GetFunctions write SetFunctions;
     property NewLine: string read GetNewLine write SetNewLine;
@@ -204,6 +208,7 @@ type
     property DebugErrorFormat: string read GetDebugErrorFormat write SetDebugErrorFormat;
     property StreamWriterProvider: TStreamWriterProvider read GetStreamWriterProvider write SetStreamWriterProvider;
     property PrettyPrintOutput: TPrettyPrintOutput read GetPrettyPrintOutput write SetPrettyPrintOutput;
+    property OnChange: TTemplateChangeEvent read GetOnChange write SetOnChange;
   end;
 
   ITemplateContextForScope = interface
@@ -248,11 +253,13 @@ uses
 type
   TEvaluationContext = class
   private
+    FParent: TEvaluationContext;
     FBlocks: TObjectDictionary<string, TStack<IBlockStmt>>;
     FManaged: TObjectList<TObject>;
   public
-    constructor Create;
+    constructor Create(const AParent: TEvaluationContext = nil);
     destructor Destroy; override;
+    property Parent: TEvaluationContext read FParent;
     function TryGetBlock(const AName: string; out ABlock: IBlockStmt): boolean;
     procedure AddBlock(const AName: string; const ABlock: IBlockStmt);
     procedure RemoveBlock(const AName: string);
@@ -287,12 +294,16 @@ type
     FWhiteSpace: string;
     FVariableResolver: TTemplateVariableResolver;
     FRttiContext: TGetRttiContext;
+    FOnChange: TTemplateChangeEvent;
   public
     constructor Create(const AOptions: TTemplateEvaluationOptions);
     destructor Destroy; override;
 
     function GetRttiContext: TGetRttiContext;
     procedure SetRttiContext(const AContext: TGetRttiContext);
+
+    function GetOnChange: TTemplateChangeEvent;
+    procedure SetOnChange(const AOnChange: TTemplateChangeEvent);
 
     function TryGetBlock(const AName: string; out ABlock: IBlockStmt): boolean;
     procedure AddBlock(const AName: string; const ABlock: IBlockStmt);
@@ -390,13 +401,18 @@ end;
 { TTemplateContext }
 
 procedure TTemplateContext.SetTemplate(const AName: string; const ATemplate: ITemplate);
+var
+  LOnChange: TTemplateChangeEvent;
 begin
   FLock.Acquire;
   try
     FTemplates.AddOrSetValue(AName, ATemplate);
+    LOnChange := FOnChange;
   finally
     FLock.Release;
   end;
+  if assigned(LOnChange) then
+    LOnChange(AName, ATemplate);
 end;
 
 procedure TTemplateContext.AddBlock(const AName: string; const ABlock: IBlockStmt);
@@ -415,13 +431,29 @@ begin
 end;
 
 procedure TTemplateContext.ClearTemplates;
+var
+  LName: string;
+  LNames: TArray<string>;
+  LIdx: Integer;
+  LOnChange: TTemplateChangeEvent;
 begin
   FLock.Acquire;
   try
+    SetLength(LNames, FTemplates.Count);
+    LIdx := 0;
+    for LName in FTemplates.Keys do
+    begin
+      LNames[LIdx] := LName;
+      Inc(LIdx);
+    end;
     FTemplates.Clear();
+    LOnChange := FOnChange;
   finally
     FLock.Release;
   end;
+  if assigned(LOnChange) then
+    for LName in LNames do
+      LOnChange(LName, nil);
 end;
 
 constructor TTemplateContext.Create(const AOptions: TTemplateEvaluationOptions);
@@ -444,7 +476,8 @@ begin
   FStreamWriterProvider := GStreamWriterProvider;
   FWhiteSpace := #32;
   FFormatSettings := TFormatSettings.Create;
-  SetDecimalSeparator(FFormatSettings.DecimalSeparator);
+  SetDecimalSeparator('.');
+  SetValueSeparator(',');
   FDebugFormat := FNewLine + FNewLine + 'ERROR: %s' + FNewLine + FNewLine;
 end;
 
@@ -456,8 +489,18 @@ begin
 end;
 
 procedure TTemplateContext.EndEvaluation;
+var
+  LCurrent: TEvaluationContext;
+  LParent: TEvaluationContext;
 begin
-  FreeAndNil(FEvaluationContext);
+  LCurrent := FEvaluationContext;
+  if LCurrent = nil then
+    exit;
+
+  LParent := LCurrent.Parent;
+  FEvaluationContext := nil;
+  LCurrent.Free;
+  FEvaluationContext := LParent;
 end;
 
 function TTemplateContext.TryGetBlock(const AName: string; out ABlock: IBlockStmt): boolean;
@@ -538,6 +581,11 @@ begin
   exit(FOptions);
 end;
 
+function TTemplateContext.GetOnChange: TTemplateChangeEvent;
+begin
+  Result := FOnChange;
+end;
+
 function TTemplateContext.GetPrettyPrintOutput: TPrettyPrintOutput;
 begin
   result := FPrettyPrintOutput;
@@ -593,13 +641,21 @@ begin
 end;
 
 procedure TTemplateContext.RemoveTemplate(const AName: string);
+var
+  LRemoved: Boolean;
+  LOnChange: TTemplateChangeEvent;
 begin
   FLock.Acquire;
   try
-    FTemplates.Remove(AName);
+    LRemoved := FTemplates.ContainsKey(AName);
+    if LRemoved then
+      FTemplates.Remove(AName);
+    LOnChange := FOnChange;
   finally
     FLock.Release;
   end;
+  if LRemoved and assigned(LOnChange) then
+    LOnChange(AName, nil);
 end;
 
 function TTemplateContext.GetScriptEndStripToken: string;
@@ -695,6 +751,11 @@ begin
     include(FOptions, eoFlattenTemplate);
 end;
 
+procedure TTemplateContext.SetOnChange(const AOnChange: TTemplateChangeEvent);
+begin
+  FOnChange := AOnChange;
+end;
+
 procedure TTemplateContext.SetPrettyPrintOutput(const APrettyPrintOutput: TPrettyPrintOutput);
 begin
   FPrettyPrintOutput := APrettyPrintOutput;
@@ -741,7 +802,7 @@ end;
 
 procedure TTemplateContext.StartEvaluation;
 begin
-  FEvaluationContext := TEvaluationContext.Create;
+  FEvaluationContext := TEvaluationContext.Create(FEvaluationContext);
 end;
 
 procedure TTemplateContext.SetScriptEndStripToken(const Value: string);
@@ -864,8 +925,9 @@ begin
   LStack.Push(ABlock)
 end;
 
-constructor TEvaluationContext.Create;
+constructor TEvaluationContext.Create(const AParent: TEvaluationContext);
 begin
+  FParent := AParent;
   FBlocks := TObjectDictionary < string, TStack < IBlockStmt >>.Create([doOwnsValues]);
   FManaged := TObjectList<TObject>.Create;
 end;

@@ -1,0 +1,1 @@
+Composite Sakila score: <% DwsInline('uses SakilaDb; function Main(data : JSONVariant) : String; begin Result := ValueText(data.sql); end;', 'Main', { "sql": "select (select count(*) from actor) + (select count(*) from film) + (select count(*) from customer)" }) %>

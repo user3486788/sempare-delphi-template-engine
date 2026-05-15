@@ -1,0 +1,36 @@
+uses PosterCache, SakilaDb;
+
+function ListFilms(data : JSONVariant) : String;
+var
+  rows : JSONVariant;
+  i : Integer;
+  posterKey : String;
+begin
+  rows := JSON.Parse(QueryJson(
+    'select f.film_id, f.title, f.release_year, f.rating, f.length, ' +
+    'printf(''%.2f'', f.rental_rate) as rental_rate_text, ' +
+    'printf(''%.2f'', f.replacement_cost) as replacement_cost_text, ' +
+    'f.rental_duration, ' +
+    'coalesce((select c.name from category c join film_category fc on fc.category_id = c.category_id where fc.film_id = f.film_id order by c.name limit 1), ''Uncategorised'') as category_name, ' +
+    'coalesce((select group_concat(a.first_name || '' '' || a.last_name, '', '') ' +
+    'from actor a join film_actor fa on fa.actor_id = a.actor_id where fa.film_id = f.film_id), '''') as actor_names, ' +
+    'coalesce((select count(*) from inventory i join rental r on r.inventory_id = i.inventory_id where i.film_id = f.film_id), 0) as rental_count, ' +
+    'substr(replace(replace(f.description, char(13), '' ''), char(10), '' ''), 1, 260) as description_text ' +
+    'from film f ' +
+    'order by rental_count desc, f.title ' +
+    'limit 12'
+  ));
+
+  for i := 0 to rows.Length - 1 do begin
+    posterKey := String(rows[i].film_id) + '-' + Slug(String(rows[i].title));
+    rows[i].poster_path := EnsureCachedPoster(
+      'sakila',
+      posterKey,
+      PosterUrl(String(rows[i].title), String(rows[i].category_name)),
+      String(rows[i].title),
+      String(rows[i].category_name)
+    );
+  end;
+
+  Result := JSON.Stringify(rows);
+end;

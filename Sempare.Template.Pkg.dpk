@@ -82,6 +82,15 @@ contains
   Sempare.Template.JSON in 'src\Sempare.Template.JSON.pas',
   Sempare.Template.ResourceStrings in 'src\Sempare.Template.ResourceStrings.pas',
   Sempare.Template.VariableExtraction in 'src\Sempare.Template.VariableExtraction.pas',
-  Sempare.Template.TemplateRegistry in 'src\Sempare.Template.TemplateRegistry.pas';
+  Sempare.Template.TemplateRegistry in 'src\Sempare.Template.TemplateRegistry.pas',
+  Sempare.Template.DWS.Types in 'src\Sempare.Template.DWS.Types.pas',
+  Sempare.Template.DWS.Provider in 'src\Sempare.Template.DWS.Provider.pas',
+  Sempare.Template.DWS.Cache in 'src\Sempare.Template.DWS.Cache.pas',
+  Sempare.Template.DWS.Marshalling in 'src\Sempare.Template.DWS.Marshalling.pas',
+  Sempare.Template.DWS.Runtime in 'src\Sempare.Template.DWS.Runtime.pas',
+  Sempare.Template.DWS.HostServices in 'src\Sempare.Template.DWS.HostServices.pas',
+  Sempare.Template.DWS.Functions in 'src\Sempare.Template.DWS.Functions.pas',
+  Sempare.Template.DWS in 'src\Sempare.Template.DWS.pas',
+  Sempare.Template.DWS.Tooling in 'src\Sempare.Template.DWS.Tooling.pas';
 
 end.

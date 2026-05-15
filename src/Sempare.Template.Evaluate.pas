@@ -1043,7 +1043,7 @@ begin
 
     if LParams[LNumParams - 1].ParamType.TypeKind = tkDynArray then
     begin
-      if LNumParams > 2 then
+      if LNumParams > (LOffset + 1) then
         RaiseErrorRes(APosition, @STooManyParameters);
       result[LOffset] := TValue.From(AArgs);
       exit;
@@ -1067,16 +1067,20 @@ var
   function GetParamCount: integer;
   var
     LParams: TArray<TRttiParameter>;
-    LParam: TRttiParameter;
+    LParamIdx: Integer;
   begin
     LParams := LMethod.GetParameters;
-    result := length(LParams);
-    if result > 0 then
+    Result := Length(LParams);
+    LParamIdx := 0;
+
+    if (LParamIdx < Length(LParams)) and (LParams[LParamIdx].ParamType.Handle = TypeInfo(ITemplateContext)) then
     begin
-      LParam := LParams[0];
-      if LParam.ParamType.Handle = TypeInfo(ITemplateContext) then
-        dec(result);
+      Dec(Result);
+      Inc(LParamIdx);
     end;
+
+    if (LParamIdx < Length(LParams)) and (LParams[LParamIdx].ParamType.Handle = TypeInfo(TObjectStack<TStackFrame>)) then
+      Dec(Result);
   end;
 
 begin

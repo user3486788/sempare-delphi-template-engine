@@ -46,6 +46,12 @@ type
     procedure TestVariables();
     [Test]
     procedure TestCRNLTAB;
+    [Test]
+    procedure TestDefaultSeparators;
+    [Test]
+    procedure TestTemplateOnChangeSetAndRemove;
+    [Test]
+    procedure TestTemplateOnChangeClearTemplates;
   end;
 
 implementation
@@ -75,6 +81,66 @@ begin
   Assert.AreEqual(#13, Template.Eval('<% cr %>'));
   Assert.AreEqual(#13#10, Template.Eval('<% crnl %>'));
   Assert.AreEqual(#9, Template.Eval('<% tab %>'));
+end;
+
+procedure TContextTest.TestDefaultSeparators;
+var
+  ctx: ITemplateContext;
+begin
+  ctx := Template.Context();
+  Assert.AreEqual('.', ctx.DecimalSeparator);
+  Assert.AreEqual(',', ctx.ValueSeparator);
+end;
+
+procedure TContextTest.TestTemplateOnChangeSetAndRemove;
+var
+  ctx: ITemplateContext;
+  LEvents: TArray<string>;
+  LTemplate: ITemplate;
+begin
+  ctx := Template.Context();
+  ctx.OnChange := procedure(const ATemplateName: string; const ATemplate: ITemplate)
+    begin
+      SetLength(LEvents, Length(LEvents) + 1);
+      if ATemplate <> nil then
+        LEvents[High(LEvents)] := ATemplateName + '=set'
+      else
+        LEvents[High(LEvents)] := ATemplateName + '=removed';
+    end;
+
+  LTemplate := Template.Parse('<% "hello" %>');
+  ctx.SetTemplate('hello', LTemplate);
+  ctx.RemoveTemplate('hello');
+
+  Assert.AreEqual(2, Length(LEvents));
+  Assert.AreEqual('hello=set', LEvents[0]);
+  Assert.AreEqual('hello=removed', LEvents[1]);
+end;
+
+procedure TContextTest.TestTemplateOnChangeClearTemplates;
+var
+  ctx: ITemplateContext;
+  LEvents: TArray<string>;
+begin
+  ctx := Template.Context();
+  ctx.OnChange := procedure(const ATemplateName: string; const ATemplate: ITemplate)
+    begin
+      if ATemplate = nil then
+      begin
+        SetLength(LEvents, Length(LEvents) + 1);
+        LEvents[High(LEvents)] := ATemplateName;
+      end;
+    end;
+
+  ctx.SetTemplate('one', Template.Parse('<% "one" %>'));
+  ctx.SetTemplate('two', Template.Parse('<% "two" %>'));
+  SetLength(LEvents, 0);
+
+  ctx.ClearTemplates;
+
+  Assert.AreEqual(2, Length(LEvents));
+  Assert.IsTrue((LEvents[0] = 'one') or (LEvents[1] = 'one'));
+  Assert.IsTrue((LEvents[0] = 'two') or (LEvents[1] = 'two'));
 end;
 
 end.

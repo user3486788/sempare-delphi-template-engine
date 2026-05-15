@@ -1,0 +1,12 @@
+uses PosterCache;
+
+function Main(data : JSONVariant) : String;
+begin
+  Result := EnsureCachedPoster(
+    'sakila',
+    String(data.cache_key),
+    PosterUrl(String(data.title), String(data.category_name)),
+    String(data.title),
+    String(data.category_name)
+  );
+end;

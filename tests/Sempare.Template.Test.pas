@@ -124,6 +124,8 @@ type
 
     [Test]
     procedure TestTemplateAPI;
+    [Test]
+    procedure TestTemplateRegistryAutomaticRefreshNotifiesOnFileChange;
 
     [Test]
     procedure TestPassingTValue;
@@ -151,6 +153,7 @@ uses
   System.Classes,
   System.SysUtils,
   System.IOUtils,
+  System.SyncObjs,
   System.Rtti, // remove inline expansion hint
   Sempare.Template.AST, // remove inline expansion hint
   Sempare.Template.TemplateRegistry, // remove inline expansion hint
@@ -360,7 +363,11 @@ var
   LTemplate: ITemplate;
 begin
   // main thing is that we have no exception here!
-  LTemplate := Template.ParseFile('..\..\demo\SempareTemplatePlayground\templates\international.tpl');
+  LTemplate := Template.ParseFile(
+    TPath.GetFullPath(
+      TPath.Combine(ExtractFilePath(ParamStr(0)), '..\..\demo\SempareTemplatePlayground\templates\international.tpl')
+    )
+  );
   Assert.IsNotNull(LTemplate);
 end;
 
@@ -680,7 +687,7 @@ begin
   Assert.AreEqual('<% print(Encode(''hello world'')) %>'#13#10, Template.PrettyPrint(LTemplate));
 
   // class function ParseFile(const AFile: string): ITemplate; overload; static;
-  LPath := TPath.GetTempFileName;
+  LPath := TPath.Combine(TPath.GetTempPath, GUIDToString(TGuid.NewGuid) + '.tmp');
   try
     TFile.WriteAllText(LPath, 'hello world');
     LTemplate := Template.ParseFile(LContext, LPath);
@@ -692,7 +699,8 @@ begin
     Assert.AreEqual('<% print(Encode(''hello world'')) %>'#13#10, Template.PrettyPrint(LTemplate));
 
   finally
-    TFile.Delete(LPath);
+    if TFile.Exists(LPath) then
+      TFile.Delete(LPath);
   end;
 
   // class procedure ExtractReferences(const ATemplate: ITemplate; out AVariables: TArray<string>; out AFunctions: TArray<string>); static;
@@ -715,6 +723,56 @@ begin
     Assert.IsTrue(LBlocks.ContainsKey('footer'));
   finally
     LBlocks.free;
+  end;
+end;
+
+procedure TTestTemplate.TestTemplateRegistryAutomaticRefreshNotifiesOnFileChange;
+var
+  LTemplateRegistry: TTemplateRegistry;
+  LRootFolder: string;
+  LTemplatePath: string;
+  LSignal: TEvent;
+  LChangeCount: Integer;
+begin
+  LTemplateRegistry := TTemplateRegistry.Create;
+  LSignal := TEvent.Create;
+  LChangeCount := 0;
+  LRootFolder := TPath.Combine(TPath.GetTempPath, GUIDToString(TGuid.NewGuid));
+  try
+    TDirectory.CreateDirectory(LRootFolder);
+    LTemplatePath := TPath.Combine(LRootFolder, 'watch.tpl');
+    TFile.WriteAllText(LTemplatePath, '<% "before" %>', TEncoding.UTF8WithoutBOM);
+
+    LTemplateRegistry.AutomaticRefresh := False;
+    LTemplateRegistry.ClearTemplates;
+    LTemplateRegistry.TemplateRootFolder := LRootFolder;
+    LTemplateRegistry.TemplateFileExt := '.tpl';
+    LTemplateRegistry.LoadStrategy := [tlsLoadFile];
+    LTemplateRegistry.RefreshIntervalS := 5;
+    LTemplateRegistry.Context.OnChange := procedure(const ATemplateName: string; const ATemplate: ITemplate)
+      begin
+        if (ATemplate <> nil) and SameText(ATemplateName, 'watch') then
+        begin
+          TInterlocked.Increment(LChangeCount);
+          if LChangeCount >= 2 then
+            LSignal.SetEvent;
+        end;
+      end;
+    LTemplateRegistry.AutomaticRefresh := True;
+
+    Assert.AreEqual('before', Template.Eval(LTemplateRegistry.Context, LTemplateRegistry.GetTemplate('watch')));
+    Sleep(1100);
+    TFile.WriteAllText(LTemplatePath, '<% "after" %>', TEncoding.UTF8WithoutBOM);
+
+    Assert.AreEqual(TWaitResult.wrSignaled, LSignal.WaitFor(7000));
+    Assert.AreEqual('after', Template.Eval(LTemplateRegistry.Context, LTemplateRegistry.GetTemplate('watch')));
+  finally
+    LTemplateRegistry.AutomaticRefresh := False;
+    LTemplateRegistry.ClearTemplates;
+    LTemplateRegistry.Free;
+    if TDirectory.Exists(LRootFolder) then
+      TDirectory.Delete(LRootFolder, True);
+    LSignal.Free;
   end;
 end;
 

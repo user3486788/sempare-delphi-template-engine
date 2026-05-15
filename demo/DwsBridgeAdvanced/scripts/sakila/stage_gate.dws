@@ -1,0 +1,19 @@
+uses SempareHost, SakilaDb;
+
+function Promote(data : JSONVariant) : String;
+var
+  previous : String;
+  topCategory : JSONVariant;
+begin
+  previous := String(GetVar('reportStage'));
+  topCategory := JSON.Parse(QueryJson(
+    'select c.name, count(*) as film_count ' +
+    'from category c ' +
+    'join film_category fc on fc.category_id = c.category_id ' +
+    'group by c.category_id ' +
+    'order by film_count desc, c.name ' +
+    'limit 1'
+  ))[0];
+  SetVar('reportStage', data.stage);
+  Result := previous + ' to ' + String(GetVar('reportStage')) + ' via ' + String(topCategory.name);
+end;

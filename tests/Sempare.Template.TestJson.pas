@@ -50,6 +50,8 @@ type
 
     [test]
     procedure TestToJson;
+    [test]
+    procedure TestToJsonUsesInvariantDecimalSeparator;
 
     [test]
     procedure TestParseJson;
@@ -72,6 +74,7 @@ implementation
 
 uses
   Sempare.Template.JSON,
+  Sempare.Template.Context,
   Sempare.Template;
 
 procedure TTestTemplateJson.TestJsonNonEmptyArray;
@@ -164,6 +167,16 @@ begin
   Assert.AreEqual('false', Template.Eval('<% ToJson(false) %>'));
   Assert.AreEqual('str', Template.Eval('<% ToJson("str") %>'));
   Assert.AreEqual('{"a":1,"b":2}', Template.Eval('<% ToJson({"a":1,"b":2}) %>'));
+end;
+
+procedure TTestTemplateJson.TestToJsonUsesInvariantDecimalSeparator;
+var
+  LCtx: ITemplateContext;
+begin
+  LCtx := Template.Context;
+  LCtx.DecimalSeparator := ',';
+  LCtx.ValueSeparator := ';';
+  Assert.AreEqual('123.45', Template.Eval(LCtx, '<% ToJson(123,45) %>'));
 end;
 
 initialization

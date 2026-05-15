@@ -43,9 +43,6 @@ uses
   Sempare.Template.Context,
   Sempare.Template.AST;
 
-// NOTE: refresh is done simply by using a thread periodically. a more optimal approach could be to use
-// file system events, but for development, this should be ok.
-
 type
   ETemplateRefreshTooFrequent = class(Exception)
   public
@@ -59,7 +56,7 @@ type
 
   IRefreshableTemplate = interface(ITemplate)
     ['{AC4008EA-336F-4DCB-B6E6-E11034DF5ACF}']
-    procedure Refresh;
+    function Refresh: Boolean;
   end;
 
   TAbstractProxyTemplate = class abstract(TInterfacedObject, ITemplate)
@@ -90,10 +87,10 @@ type
   strict private
     FContext: ITemplateContext;
     FModifiedAt: TDateTime;
-    procedure Load(const AFilename: string; const ATime: TDateTime);
+    function Load(const AFilename: string; const ATime: TDateTime): Boolean;
   public
     constructor Create(const AContext: ITemplateContext; const AFilename: string);
-    procedure Refresh;
+    function Refresh: Boolean;
   end;
 
   TTemplateLoadStrategy = (tlsLoadResource, tlsLoadFile, tlsLoadCustom);
@@ -140,12 +137,14 @@ type
     FGetNames: array [TTemplateLoadStrategy] of TGetName;
 
     procedure Refresh;
+    procedure RunAutomaticRefreshThread;
     procedure SetRefreshIntervalS(const Value: integer);
     procedure SetAutomaticRefresh(const Value: boolean);
     procedure SetLoadStrategy(const Value: TArray<TTemplateLoadStrategy>);
     procedure SetTemplateFileExt(const Value: string);
     procedure LogException(const AException: Exception);
     procedure Log(const AMsg: string; const AArgs: array of const);
+    function UsesFileLoadStrategy: Boolean;
   public
     constructor Create();
     destructor Destroy; override;
@@ -200,7 +199,11 @@ uses
   Sempare.Template.PrettyPrint,
 {$ENDIF}
   System.IOUtils,
-  System.DateUtils;
+  System.DateUtils
+{$IFDEF MSWINDOWS}
+  , Winapi.Windows
+{$ENDIF}
+  ;
 
 const
   CLoadStrategy: array [TTemplateLoadStrategy] of string = ('resource', 'file', 'custom');
@@ -208,17 +211,14 @@ const
   { TTemplateRegistry }
 
 procedure TTemplateRegistry.ClearTemplates;
-var
-  LName: string;
 begin
   FLock.Acquire;
   try
-    for LName in FTemplates.keys do
-      FContext.RemoveTemplate(LName);
     FTemplates.Clear();
   finally
     FLock.Release;
   end;
+  FContext.ClearTemplates();
 end;
 
 constructor TTemplateRegistry.Create;
@@ -562,10 +562,11 @@ begin
     raise ETemplateNotResolved.Create(LTemplateName);
   FLock.Acquire;
   try
-    FTemplates.Add(LTemplateName, result);
+    FTemplates.AddOrSetValue(LTemplateName, result);
   finally
     FLock.Release;
   end;
+  FContext.SetTemplate(LTemplateName, result);
 end;
 
 function TTemplateRegistry.GetTemplate<T>(const ATemplateName: string; const AContext: T): ITemplate;
@@ -592,34 +593,51 @@ end;
 
 procedure TTemplateRegistry.Refresh;
 var
+  LEntries: TArray<TPair<string, ITemplate>>;
+  LEntry: TPair<string, ITemplate>;
+  LIdx: Integer;
   LRefreshable: IRefreshableTemplate;
-  LTemplate: ITemplate;
 begin
   if not assigned(FLock) then
     exit;
   FLock.Acquire;
   try
-    for LTemplate in FTemplates.values do
+    SetLength(LEntries, FTemplates.Count);
+    LIdx := 0;
+    for LEntry in FTemplates do
     begin
-      if supports(LTemplate, IRefreshableTemplate, LRefreshable) then
-      begin
-        LRefreshable.Refresh;
-      end;
+      LEntries[LIdx] := LEntry;
+      Inc(LIdx);
     end;
   finally
     FLock.Release;
   end;
+
+  for LEntry in LEntries do
+    if supports(LEntry.Value, IRefreshableTemplate, LRefreshable) then
+      try
+        if LRefreshable.Refresh then
+          FContext.SetTemplate(LEntry.Key, LEntry.Value);
+      except
+        on E: Exception do
+          LogException(E);
+      end;
 end;
 
 procedure TTemplateRegistry.RemoveTemplate(const ATemplateName: string);
+var
+  LRemoved: Boolean;
 begin
   FLock.Acquire;
   try
-    FContext.RemoveTemplate(ATemplateName);
-    FTemplates.Remove(ATemplateName);
+    LRemoved := FTemplates.ContainsKey(ATemplateName);
+    if LRemoved then
+      FTemplates.Remove(ATemplateName);
   finally
     FLock.Release;
   end;
+  if LRemoved then
+    FContext.RemoveTemplate(ATemplateName);
 end;
 
 procedure TTemplateRegistry.SetAutomaticRefresh(const Value: boolean);
@@ -629,20 +647,12 @@ begin
   FAutomaticRefresh := Value;
   if Value then
   begin
+    FShutdown.ResetEvent;
+    FThreadDone.ResetEvent;
     FThread := TThread.CreateAnonymousThread(
       procedure
       begin
-        while true do
-        begin
-          case FShutdown.WaitFor(RefreshIntervalS * 1000) of
-            wrSignaled:
-              break;
-            wrTimeout:
-              ;
-          end;
-          Refresh;
-        end;
-        FThreadDone.SetEvent;
+        RunAutomaticRefreshThread;
       end);
 {$IFDEF DEBUG}
     TThread.NameThreadForDebugging('TTemplateRegistry.RefreshThread', FThread.ThreadID);
@@ -675,10 +685,77 @@ procedure TTemplateRegistry.SetTemplate(const ATemplateName: string; const ATemp
 begin
   FLock.Acquire;
   try
-    FContext.SetTemplate(ATemplateName, ATemplate);
     FTemplates.AddOrSetValue(ATemplateName, ATemplate);
   finally
     FLock.Release;
+  end;
+  FContext.SetTemplate(ATemplateName, ATemplate);
+end;
+
+function TTemplateRegistry.UsesFileLoadStrategy: Boolean;
+var
+  LLoadStrategy: TTemplateLoadStrategy;
+begin
+  Result := False;
+  for LLoadStrategy in FLoadStrategy do
+    if LLoadStrategy = tlsLoadFile then
+      Exit(True);
+end;
+
+procedure TTemplateRegistry.RunAutomaticRefreshThread;
+{$IFDEF MSWINDOWS}
+const
+  CWatchFlags = FILE_NOTIFY_CHANGE_FILE_NAME or FILE_NOTIFY_CHANGE_DIR_NAME or FILE_NOTIFY_CHANGE_LAST_WRITE;
+var
+  LChangeHandle: THandle;
+  LHandles: array [0 .. 1] of THandle;
+  LWaitResult: Cardinal;
+{$ENDIF}
+begin
+  try
+{$IFDEF MSWINDOWS}
+    if UsesFileLoadStrategy and TDirectory.Exists(FTemplateRootFolder) then
+    begin
+      LChangeHandle := FindFirstChangeNotification(PChar(FTemplateRootFolder), True, CWatchFlags);
+      if LChangeHandle <> INVALID_HANDLE_VALUE then
+      begin
+        try
+          LHandles[0] := FShutdown.Handle;
+          LHandles[1] := LChangeHandle;
+          while true do
+          begin
+            LWaitResult := WaitForMultipleObjects(2, @LHandles[0], False, INFINITE);
+            case LWaitResult of
+              WAIT_OBJECT_0:
+                Exit;
+              WAIT_OBJECT_0 + 1:
+                begin
+                  Refresh;
+                  if not FindNextChangeNotification(LChangeHandle) then
+                    Break;
+                end;
+            else
+              Break;
+            end;
+          end;
+        finally
+          FindCloseChangeNotification(LChangeHandle);
+        end;
+        Exit;
+      end;
+    end;
+{$ENDIF}
+    while true do
+    begin
+      case FShutdown.WaitFor(RefreshIntervalS * 1000) of
+        wrSignaled:
+          Exit;
+        wrTimeout:
+          Refresh;
+      end;
+    end;
+  finally
+    FThreadDone.SetEvent;
   end;
 end;
 
@@ -778,12 +855,12 @@ begin
   Load(AFilename, TFile.GetLastWriteTime(AFilename));
 end;
 
-procedure TFileTemplate.Load(const AFilename: string; const ATime: TDateTime);
+function TFileTemplate.Load(const AFilename: string; const ATime: TDateTime): Boolean;
 var
   LStream: TStream;
 begin
   if FModifiedAt = ATime then
-    exit;
+    Exit(False);
 {$IFDEF SUPPORT_BUFFERED_STREAM}
   LStream := TBufferedFileStream.Create(AFilename, fmOpenRead or fmShareDenyNone);
 {$ELSE}
@@ -803,11 +880,12 @@ begin
   end;
   FTemplate.FileName := AFilename;
   FModifiedAt := ATime;
+  Result := True;
 end;
 
-procedure TFileTemplate.Refresh;
+function TFileTemplate.Refresh: Boolean;
 begin
-  Load(FTemplate.FileName, TFile.GetLastWriteTime(FTemplate.FileName));
+  Result := Load(FTemplate.FileName, TFile.GetLastWriteTime(FTemplate.FileName));
 end;
 
 { ETemplateNotResolved }

@@ -35,6 +35,7 @@ program Sempare.TemplateEngine.Playground;
 uses
   Vcl.Forms,
   Sempare.Template.PlaygroundForm in 'Sempare.Template.PlaygroundForm.pas' {FormTemplateEnginePlayground},
+  FireDAC.VCLUI.Wait,
   Vcl.Themes,
   Vcl.Styles;
 

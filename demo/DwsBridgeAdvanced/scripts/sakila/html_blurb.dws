@@ -1,0 +1,19 @@
+uses SakilaDb;
+
+function Render(data : JSONVariant) : String;
+var
+  filmInfo : JSONVariant;
+begin
+  filmInfo := JSON.Parse(QueryJson(
+    'select f.title, f.rating, count(*) as rental_count ' +
+    'from rental r ' +
+    'join inventory i on i.inventory_id = r.inventory_id ' +
+    'join film f on f.film_id = i.film_id ' +
+    'group by f.film_id ' +
+    'order by rental_count desc, f.title ' +
+    'limit 1'
+  ))[0];
+
+  Result := '<section class="film-blurb"><h2>' + String(filmInfo.title) + '</h2><p>Rating: ' +
+    String(filmInfo.rating) + '</p><p>Rentals: ' + String(filmInfo.rental_count) + '</p></section>';
+end;

@@ -142,6 +142,30 @@ There are a few ways to get started quickly.
 - parse time evaluation of expressions/statements
 - allow use of custom encoding (UTF-8 with BOM, UTF-8 without BOM, ASCII, etc)
 - extensibile RTTI interface to easily dereference classes and interfaces (current customisations for ITemplateVariables, TDictionary, TJsonObject)
+- configurable `ITemplateContext` for variables, escaping, token options, resolvers, and runtime behavior
+- optional DWScript bridge that keeps Sempare in control and calls DWScript only through helpers like `DwsCall` and `DwsText`.
+
+
+## DWScript Example
+
+```pascal
+Bridge := CreateSempareDwsBridge([
+  tdboCacheCompiledScripts,
+  tdboPassRootData,
+  tdboExpectJsonLikeReturn
+]);
+Bridge.AddScript('pricing',
+  'function CalcTotal(data : JSONVariant) : Integer;' + sLineBreak +
+  'begin Result := data.total + 5; end;');
+Bridge.RegisterInto(Ctx);
+
+Writeln(Template.Eval(Ctx, '<% DwsCall(''pricing'', ''CalcTotal'', { "total": 10 }) %>'));
+```
+## Demos
+
+- [Sempare Template Playground](demo/SempareTemplatePlayground/README.md) - interactive VCL playground for templates and DWScript helpers.
+- [DwsBridgeAdvanced](demo/DwsBridgeAdvanced/README.md) - CLI showcase for Chinook and Sakila with poster cache and report generation.
+
 
 <a name="Objectives"><h2>Objectives</h3></a>
 

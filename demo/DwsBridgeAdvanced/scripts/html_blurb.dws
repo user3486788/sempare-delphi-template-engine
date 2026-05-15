@@ -1,0 +1,4 @@
+function Render(data : JSONVariant) : String;
+begin
+  Result := '<section class="artist-blurb"><h2>' + data.name + '</h2><p>Tracks: ' + data.trackCountText + '</p></section>';
+end;

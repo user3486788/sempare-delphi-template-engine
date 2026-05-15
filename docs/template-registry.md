@@ -1,3 +1,5 @@
+[← Custom Functions](custom-functions.md) · [Back to README](../README.md) · [Components →](components.md)
+
 # ![](../images/sempare-logo-45px.png) Sempare Template Engine
 
 Copyright (c) 2019-2024 [Sempare Limited](http://www.sempare.ltd)
@@ -101,7 +103,8 @@ TSempareServerPages is actually an alias for TTemplateRegistry. The following pu
     // Provides access to the singleton instance of the registry
     class property Instance: TTemplateRegistry;                   // read only
 
-    // Provides access to the context used by parsing and evaluating templates
+    // Provides access to the context used by parsing and evaluating templates.
+    // Context.OnChange can be used to observe registry-driven template reloads.
     property Context: ITemplateContext;                           // read only
     
     // Allow a custom name resolver to map onto application resources 
@@ -120,10 +123,12 @@ TSempareServerPages is actually an alias for TTemplateRegistry. The following pu
     // The load strategy order. Defaults to [tlsResource] in RELEASE, and [tlsFile, tlsResource] in DEBUG
     property LoadStrategy: TArray<TTemplateLoadStrategy>;         // read/write
     
-    // The template refresh interval when AutomaticRefresh is true when tlsFile in LoadStrategy
+    // The polling fallback interval when AutomaticRefresh is true and file-system
+    // notifications are unavailable.
     property RefreshIntervalS: integer;                           // read/write
     
-    // When true, will refresh templates in the background. 
+    // When true, will refresh templates in the background. File-backed templates
+    // use file-system notifications where available and fall back to polling.
     property AutomaticRefresh: boolean;                           // read/write
     
     // As Context.TemplateResolver is used by the TTemplateRegistry, this provides for custom loading.
@@ -137,6 +142,8 @@ TSempareServerPages is actually an alias for TTemplateRegistry. The following pu
   end;
 
 ```
+
+When `AutomaticRefresh` is enabled for file-backed templates, the registry now watches the template folder for file-system changes and refreshes loaded templates only when the folder changes. Interested listeners can subscribe via `Template.Resolver.Context.OnChange` to observe updated or removed templates as the registry reloads them.
 
 These can be accessed by using the normal Template helper class:
 
@@ -177,3 +184,10 @@ Sempare.Template.RCGenerator.exe <rcfilename> <templatepath> [<ext>+]
 <templatepath> is the path to the directory listing all the templates
 <ext>+ is one one or more extensions to be included. By default: .ico, .png, .jpg, .jpeg, .webp, .tpl, .bmp, .gif, .wbmp
 ```
+
+## See Also
+
+- [Custom Functions](custom-functions.md) - extending template behavior with Delphi helpers.
+- [Components](components.md) - main API surface and supporting units.
+- [Testing](testing.md) - regression coverage for template loading behavior.
+
